@@ -7,6 +7,8 @@ import math as math
 def build_poly1(x, degree):
     """polynomial basis functions for input data x, for j=0 up to j=degree."""
 
+	"""TODO: for more than one feature"""
+
     nelem = len(x)
     tx = np.ones([nelem,degree+1])
     for j in range(1,degree+1):
