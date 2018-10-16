@@ -7,12 +7,29 @@ import math as math
 def build_poly1(x, degree):
     """polynomial basis functions for input data x, for j=0 up to j=degree."""
 
-	"""TODO: for more than one feature"""
-
     nelem = len(x)
     tx = np.ones([nelem,degree+1])
     for j in range(1,degree+1):
         tx[:,j] = tx[:,j-1]*x
+
+    return tx
+
+def build_polynomial(x, degrees):
+    """polynominal basis functions for input data x with more than one feature (i.e. x 2D array)"""
+    """degrees has to be an array/list specifing the degree to which each feature should be developed"""
+
+    nelem = x.shape[0]
+    nfeatures = x.shape[1]
+
+    if nfeatures > 1:
+        if( len(degrees) != nfeatures ):
+            raise ValueError('Degrees has to be an array/list with nfeatures elements - Thank you python for not being type safe.')
+        else:
+            tx = build_poly1(x[:,0],degrees[0])
+            for i, degree in enumerate(degrees[1:]):
+                tx = np.concatenate([tx,build_poly1(x[:,i],degree)[:,1:]],1)
+    else:
+        tx = build_poly1(x,degrees)
 
     return tx
 
@@ -116,7 +133,7 @@ def gradient_descent(y, tx, initial_w, max_iters, gamma):
 
     loss = compute_loss(y,tx,w)
 
-    return loss, w
+    return w, loss
 
 def compute_stoch_gradient(y, tx, w):
     """Compute a stochastic gradient from just few examples n and their corresponding y_n labels."""
@@ -166,7 +183,7 @@ def stochastic_gradient_descent(y, tx, initial_w, batch_size, max_iters, gamma):
 
     loss = compute_loss(y,tx,w)
 
-    return loss, w
+    return w, loss
 
 def least_squares(y, tx):
     """Computes the least squares solution."""
@@ -191,5 +208,5 @@ def ridge_regression(y, tx, lambda_):
 
     return w, loss
 
-#logistic regression(y, tx, initial w,max iters, gamma)
-#reg logistic regression(y, tx, lambda ,initial w, max iters, gamma)
+#logistic_regression(y, tx, initial w,max iters, gamma)
+#reg_logistic_regression(y, tx, lambda ,initial w, max iters, gamma)
