@@ -208,5 +208,54 @@ def ridge_regression(y, tx, lambda_):
 
     return w, loss
 
-#logistic_regression(y, tx, initial w,max iters, gamma)
+def sigma(tx,w):
+
+    print()
+    print("dis mami")
+    print(tx)
+    print(tx.shape)
+    print(w)
+    print(w.shape)
+
+    x = tx.dot(w)
+    print(x)
+    x = np.exp(x)
+    print(x)
+
+    print(np.isfinite(x).all())
+    print(np.isfinite(1+x).all())
+
+    return np.divide(x,1+x)
+
+def compute_log_gradient(y, tx, w):
+
+    grad = sigma(tx,w)-y
+    grad = tx.transpose().dot(grad)
+
+    return grad
+
+def compute_loss_log(y,tx,w):
+
+    #todo implement
+
+    return -1
+
+def logistic_regression(y, tx, initial_w,max_iters, gamma, batch_size=1):
+
+    w = initial_w
+
+    batches = batch_iter(y, tx, batch_size, min(max_iters,(y.shape[0]+batch_size-1)//batch_size))
+    n_iter = 0
+
+    for batch in batches:
+
+        yb = np.transpose(batch[0])
+        txb = batch[1]
+        w = w -gamma*compute_log_gradient(yb, txb, w)
+        n_iter = n_iter + 1
+
+    loss = compute_loss_log(y,tx,w)
+
+    return w, loss
+
 #reg_logistic_regression(y, tx, lambda ,initial w, max iters, gamma)
