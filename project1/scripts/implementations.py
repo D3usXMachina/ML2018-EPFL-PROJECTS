@@ -519,7 +519,7 @@ def add_constant(x):
     ----------------------------------------------------------------------------
     """
 
-    tx = np.column_stack(np.ontxes([x.shape[0],1]),x)
+    tx = np.column_stack((np.ones([x.shape[0],1]),x))
 
     return tx
 
