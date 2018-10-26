@@ -12,8 +12,8 @@
 # "Trainers".
 # ==============================================================================
 # -Trainers
-#   -> gradient_descent(y, tx, initial_w, max_iters=100, gamma=0.5, lambda_=0 )
-#   -> stochastic_gradient_descent(y, tx, initial_w, batch_size=1, max_iters=100, gamma=0.5, lambda_=0)
+#   -> least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.5, lambda_=0 )
+#   -> least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.5, batch_size=1, lambda_=0)
 #   -> least_squares(y, tx, lambda_=0)
 #   -> ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.5, batch_size=1)
 #   -> logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.5, mode="log",lambda_=0)
@@ -35,9 +35,7 @@
 # TODO: -check that implementations work regardless the format of the inpute
 #        i.e. (n,) should be treated as (n,1)
 #       -implement feature mixing in polynomial feature expansion
-#       -check signatures of must implement functions
 #       -check must implement functions
-#       -check that listing of functions is correct
 #       -implement stochastic version of logistic_regression/reg_logistic_regression
 # ==============================================================================
 
@@ -51,7 +49,7 @@ import numpy as np
 # model from a training dataset.
 # ------------------------------------------------------------------------------
 
-def gradient_descent(y, tx, initial_w, max_iters=100, gamma=0.5, lambda_=0 ):
+def least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.5, lambda_=0 ):
     """
     ----------------------------------------------------------------------------
     Iteratively compute the model weights "w" from "y" and "tx" using the
@@ -84,7 +82,7 @@ def gradient_descent(y, tx, initial_w, max_iters=100, gamma=0.5, lambda_=0 ):
 
 # ------------------------------------------------------------------------------
 
-def stochastic_gradient_descent(y, tx, initial_w, batch_size=1, max_iters=100, gamma=0.5, lambda_=0):
+def least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.5, batch_size=1, lambda_=0):
     """
     ----------------------------------------------------------------------------
     Iteratively compute the model parameters "w" from "y" and "tx" using the
@@ -110,7 +108,7 @@ def stochastic_gradient_descent(y, tx, initial_w, batch_size=1, max_iters=100, g
 
     nsamples = tx.shape[0]
     if ( batch_size==0 ) | ( batch_size>nsamples ):
-        w, loss = gradient_descent(y, tx, initial_w, max_iters, gamma, lambda_)
+        w, loss = least_squares_GD(y, tx, initial_w, max_iters, gamma, lambda_)
     else:
         w = initial_w
         batches = batch_iter(y, tx, batch_size, max_iters)
