@@ -30,7 +30,7 @@
 #   -> add_constant(x)
 #   -> poly_expansion(x, degree, add_constant=True, mix_features=False)
 # -Utility
-#   -> generate_data(nsamples,nfeatures,seed=1)
+#   -> generate_data(nsamples,nfeatures,seed=1,std)
 # ==============================================================================
 # TODO: -check that implementations work regardless the format of the inpute
 #        i.e. (n,) should be treated as (n,1)
@@ -114,7 +114,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.5, batch_size=1, 
         batches = batch_iter(y, tx, batch_size, max_iters)
 
         for batch in batches:
-            yb = np.transpose(batch[0])
+            yb = batch[0]
             txb = batch[1]
             w = w -gamma*compute_gradient(yb, txb, w)
 
@@ -285,10 +285,10 @@ def compute_gradient(y, tx, w, lambda_=0, mode="mse"):
     Output:
     - grad          gradient, (tx.shape[0],1) np.array
     ----------------------------------------------------------------------------
-    MSE Gradient:   L(w) = (y-x^t*w)^2/(2*N) + lambda_*w^2
-                    grad = -(y-x^t*w)^t*w/N + 2*lambda_*w
-                         = -(y-x^t*w-N*lambda_/2)^t*w
-    Log Gradient:   L(w) = lambda_/2*w^2 + sum_n^N ln[1+exp(x_n^t*w)]-y_n*x_n^t*w
+    MSE Gradient:   L(w) = (y-x*w)^2/(2*N) + lambda_*w^2
+                    grad = -(y-x*w)^t*x/N + 2*lambda_*w
+                         = -(y-x*w-N*lambda_/2)^t*w
+    Log Gradient:   L(w) = lambda_/2*w^2 + sum_n^N ln[1+exp(x_n*w)]-y_n*x_n*w
                     grad = lambda_*w + x^t*[sigma(x*w)-y]
     Newton (Log):   H    = x^t*S*x, S_nn = sigma(x_n*w)*[1-sigma(x_n^t*w)]
                     grad2= H^-1*grad
@@ -583,9 +583,24 @@ def poly_expansion(x, degree, add_constant=True, mix_features=False):
 # Collection of other functions of use.
 # ------------------------------------------------------------------------------
 
-def generate_data(nsamples,nfeatures,seed=1):
+def generate_data(nsamples,nfeatures,seed=1,std=0.1):
     """
-    generates a random dataset from a random model
+    ----------------------------------------------------------------------------
+    This procedure generates a random data set following a linear model
+    with random coefficients. Additionally normal distributed error is then
+    added to the dataset.
+    ----------------------------------------------------------------------------
+    Input:
+    - nsamples      number of samples, integer>0
+    - nfeatures     number of features, integer>0
+    - seed          seed for np.random, integer (default=1)
+    - std           standrad deviation of normal distrubted noise, scalar>0,
+                    (default=0.1)
+    Output:
+    - y             objective function, (nsamples,1) np.array
+    - x             features, (nsamples,nfeatures+1) np.array
+    - w             actual weights, (nfeatures+1,1) np.array
+    ----------------------------------------------------------------------------
     """
 
     np.random.seed(seed)
@@ -597,7 +612,7 @@ def generate_data(nsamples,nfeatures,seed=1):
     tx = np.column_stack((tx,x))
 
     y = tx.dot(w)
-    y = y + np.random.normal(0,0.5,[nsamples,1])
+    y = y + np.random.normal(0,std,[nsamples,1])
 
     return y, tx, w
 
