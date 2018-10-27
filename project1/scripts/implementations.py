@@ -12,12 +12,12 @@
 # "Trainers".
 # ==============================================================================
 # -Trainers
-#   -> least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.5, lambda_=0 )
-#   -> least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.5, batch_size=1, lambda_=0)
+#   -> least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0 )
+#   -> least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=1, lambda_=0)
 #   -> least_squares(y, tx, lambda_=0)
-#   -> ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.5, batch_size=1)
-#   -> logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.5, mode="log",lambda_=0)
-#   -> reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0.5, mode="log")
+#   -> ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, batch_size=1)
+#   -> logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log",lambda_=0)
+#   -> reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0.2, mode="log")
 # -Utility functions for trainers
 #   -> compute_gradient(y, tx, w, lambda_=0, mode="mse")
 #   -> compute_sigma(tx,w,lim=100.0)
@@ -39,6 +39,7 @@
 #       -implement feature mixing in polynomial feature expansion
 #       -check must implement functions
 #       -implement stochastic version of logistic_regression/reg_logistic_regression
+#       -implement end condition for iterative functions
 # ==============================================================================
 
 import numpy as np
@@ -51,7 +52,7 @@ import numpy as np
 # model from a training dataset.
 # ------------------------------------------------------------------------------
 
-def least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.5, lambda_=0 ):
+def least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0 ):
     """
     ----------------------------------------------------------------------------
     Iteratively compute the model weights "w" from "y" and "tx" using the
@@ -85,7 +86,7 @@ def least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.5, lambda_=0 ):
 
 # ------------------------------------------------------------------------------
 
-def least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.5, batch_size=1, lambda_=0):
+def least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=1, lambda_=0):
     """
     ----------------------------------------------------------------------------
     Iteratively compute the model parameters "w" from "y" and "tx" using the
@@ -162,7 +163,7 @@ def least_squares(y, tx, lambda_=0):
 
 # ------------------------------------------------------------------------------
 
-def ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.5, batch_size=1):
+def ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, batch_size=1):
     """
     ----------------------------------------------------------------------------
     Compute the model weights "w" from "y" and "tx" using the
@@ -197,7 +198,7 @@ def ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.5, batc
 
 # ------------------------------------------------------------------------------
 
-def logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.5, mode="log",lambda_=0):
+def logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log",lambda_=0):
     """
     ----------------------------------------------------------------------------
     Iteratively computes the model weights "w" from "y" and "tx" using
@@ -237,7 +238,7 @@ def logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.5, mode="log",l
 
 # ------------------------------------------------------------------------------
 
-def reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0.5, mode="log"):
+def reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0.2, mode="log"):
     """
     ----------------------------------------------------------------------------
     Iteratively computes the model weights "w" from "y" and "tx" using
@@ -309,21 +310,13 @@ def compute_gradient(y, tx, w, lambda_=0, mode="mse"):
     if (( mode=="log" ) | ( mode=="1" )) | (( mode=="newton" ) | ( mode=="2" )):
 
         sigma = compute_sigma(tx,w)
-        print("y")
-        print(y.shape)
         grad = sigma-y
-        print("grad")
-        print(grad.shape)
         grad = tx.transpose().dot(grad)+a
 
         if ( mode=="newton" ) | ( mode=="2" ):
             S = sigma*(1-sigma)
-            print("s")
-            print(S.shape)
             H = tx.transpose().dot(tx*S)
             grad = np.linalg.inv(H).dot(grad)
-            print("grad H")
-            print(grad.shape)
     else:
         grad = -tx.transpose().dot(y-tx.dot(w))/tx.shape[0] + 2*a
 
@@ -443,7 +436,18 @@ def compute_loss(y, tx, w, mode="mse", lambda_=0):
         e = np.absolute(e).sum()/e.shape[0]/2
     elif (mode == "log") | (mode == 3):
         e = tx.dot(w)
-        e = np.log(1+np.exp(e)) - y*e
+
+        lim = 100.0
+        large = e>lim
+        small = e<-lim
+        neither = np.logical_not(large)*np.logical_not(small)
+
+        x = e
+        x[neither] = np.log(1+np.exp(e[neither]))
+        x[large] = e[large]
+        x[small] = 0
+
+        e = x - y*e
     else: # mse or rmse loss
         e = y-tx.dot(w)
         e = (np.transpose(e).dot(e)/(2*e.shape[0]))
