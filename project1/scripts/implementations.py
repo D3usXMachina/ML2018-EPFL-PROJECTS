@@ -32,7 +32,7 @@
 # -Utility
 #   -> generate_data(nsamples,nfeatures,seed=1,std)
 #   -> column_array(y)
-#   -> convert_y(tx,w)
+#   -> compute_y(tx,w)
 # ==============================================================================
 # TODO: -check that implementations work regardless the format of the inpute
 #        i.e. (n,) should be treated as (n,1)
@@ -657,7 +657,7 @@ def column_array(y):
 
 # ------------------------------------------------------------------------------
 
-def convert_y(tx,w):
+def compute_y(tx,w):
     """
     ----------------------------------------------------------------------------
     Convert {0,1} array to {-1,1} array
