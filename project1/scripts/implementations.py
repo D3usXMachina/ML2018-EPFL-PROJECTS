@@ -31,6 +31,8 @@
 #   -> poly_expansion(x, degree, add_constant=True, mix_features=False)
 # -Utility
 #   -> generate_data(nsamples,nfeatures,seed=1,std)
+#   -> column_array(y)
+#   -> convert_y(tx,w)
 # ==============================================================================
 # TODO: -check that implementations work regardless the format of the inpute
 #        i.e. (n,) should be treated as (n,1)
@@ -71,6 +73,7 @@ def least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.5, lambda_=0 ):
     ----------------------------------------------------------------------------
     """
 
+    y = column_array(y)
     w = initial_w
 
     for n_iter in range(max_iters):
@@ -106,6 +109,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.5, batch_size=1, 
     ----------------------------------------------------------------------------
     """
 
+    y = column_array(y)
     nsamples = tx.shape[0]
     if ( batch_size==0 ) | ( batch_size>nsamples ):
         w, loss = least_squares_GD(y, tx, initial_w, max_iters, gamma, lambda_)
@@ -145,6 +149,8 @@ def least_squares(y, tx, lambda_=0):
         a = 0
     else:
         a = 2*tx.shape[0]*lambda_*np.eye(tx.shape[1])
+
+    y = column_array(y)
 
     w = tx.transpose().dot(tx) + a
     w = np.linalg.inv(w)
@@ -219,6 +225,7 @@ def logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.5, mode="log",l
     if (mode != "newton") & (mode != 2 ):
         mode = "log"
 
+    y = column_array(y)
     w = initial_w
 
     for i in range(max_iters):
@@ -302,13 +309,21 @@ def compute_gradient(y, tx, w, lambda_=0, mode="mse"):
     if (( mode=="log" ) | ( mode=="1" )) | (( mode=="newton" ) | ( mode=="2" )):
 
         sigma = compute_sigma(tx,w)
+        print("y")
+        print(y.shape)
         grad = sigma-y
+        print("grad")
+        print(grad.shape)
         grad = tx.transpose().dot(grad)+a
 
         if ( mode=="newton" ) | ( mode=="2" ):
             S = sigma*(1-sigma)
+            print("s")
+            print(S.shape)
             H = tx.transpose().dot(tx*S)
             grad = np.linalg.inv(H).dot(grad)
+            print("grad H")
+            print(grad.shape)
     else:
         grad = -tx.transpose().dot(y-tx.dot(w))/tx.shape[0] + 2*a
 
@@ -616,29 +631,52 @@ def generate_data(nsamples,nfeatures,seed=1,std=0.1):
 
     return y, tx, w
 
+# ------------------------------------------------------------------------------
+
+def column_array(y):
+    """
+    ----------------------------------------------------------------------------
+    Reshape y to a (len,1) np.array.
+    ----------------------------------------------------------------------------
+    Input:
+    - y             y, (nelem,) np.array
+    Output:
+    - yr            yr, (nelem,1) np.array
+    ----------------------------------------------------------------------------
+    """
+
+    nelem = len(y)
+    yr = np.zeros([nelem,1])
+    yr[:,0] = y
+
+    return yr
+
+# ------------------------------------------------------------------------------
+
+def convert_y(tx,w):
+    """
+    ----------------------------------------------------------------------------
+    Convert {0,1} array to {-1,1} array
+    ----------------------------------------------------------------------------
+    Input:
+    - tx            features, (nsamples,nfeatures) np.array
+    - w             current weights, (nfeatures,1) np.array
+    Output:
+    - y             predicted objective function, (nelem,1) np.array {-1,1}
+    ----------------------------------------------------------------------------
+    """
+
+    y = np.round(compute_sigma(tx,w))
+    y = 2*y-1
+
+    return y
+
 # ==============================================================================
 # WIP
 # ==============================================================================
 # Other functions that are still work in progress and not guaranteed to work.
 # ------------------------------------------------------------------------------
 
-# def correct_shape(y, tx, w):
-#     """
-#     atempts to reshape data that isn't supplied in the correct/expected fromat
-#     """
-#
-#     nsamples = len(y)
-#     y = y.reshape(nsamples,1)
-#     w = w.reshape(nfeatures,1)
-#
-#     nfeatures = tx.shape
-#     if tx.shape[0] == nsamples:
-#         nfeatures = tx.shape[1]
-#     elif tx.shape[1] == nsamples:
-#         nfeatures = tx.shape[0]
-#         tx = tx.transpose()
-#
-#     return y, tx, w, nsamples, nfeatures
 #
 # def generate_bin_data(nsamples,nfeatures,seed=1):
 #     """
