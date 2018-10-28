@@ -210,7 +210,7 @@ def reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters, gamma):
 # model from a training dataset.
 # ------------------------------------------------------------------------------
 
-def my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0 ):
+def my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0, eps=1e-8 ):
     """
     ----------------------------------------------------------------------------
     Iteratively compute the model weights "w" from "y" and "tx" using the
@@ -226,6 +226,7 @@ def my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0 ):
                     (default=100)
     - gamma         step size, scalar in ]0,1[ (default=0.5)
     - lambda_       regularization parameter, scalar>0 (default = 0)
+    - eps           end condition, scalar>0 (default=1e-8)
     Output:
     - w             obtained weights, (nfeatures,1) np.array
     - loss          loss computed as the mean square error, scalar
@@ -234,9 +235,15 @@ def my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0 ):
 
     y = column_array(y)
     w = initial_w
+    err = 1
 
     for n_iter in range(max_iters):
-        w = w -gamma*compute_gradient(y, tx, w, lambda_)
+        grad = compute_gradient(y, tx, w, lambda_)
+        w = w -gamma*grad
+        if (n_iter%10 == 0):
+            err = np.sum(np.abs(w))
+            if err < eps:
+                break
 
     loss = compute_loss(y,tx,w)
 
@@ -244,7 +251,7 @@ def my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0 ):
 
 # ------------------------------------------------------------------------------
 
-def my_least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=4, lambda_=0):
+def my_least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=4, lambda_=0, eps=1e-8):
     """
     ----------------------------------------------------------------------------
     Iteratively compute the model parameters "w" from "y" and "tx" using the
@@ -262,6 +269,7 @@ def my_least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=
                     (default=100)
     - gamma         step size, scalar in ]0,1[ (default=0.5)
     - lambda_       regularization parameter, scalar>0 (default = 0)
+    - eps           end condition, scalar>0 (default=1e-8)
     Output:
     - w             obtained weights, (nfeatures,1) np.array
     - loss          loss computed as the mean square error, scalar
@@ -275,11 +283,17 @@ def my_least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=
     else:
         w = initial_w
         batches = batch_iter(y, tx, batch_size, max_iters)
+        err = 1
 
         for batch in batches:
             yb = batch[0]
             txb = batch[1]
-            w = w -gamma*compute_gradient(yb, txb, w)
+            grad = compute_gradient(yb, txb, w)
+            w = w -gamma*grad
+            if (n_iter%10 == 0):
+                err = np.sum(np.abs(grad))
+                if err < eps:
+                    break
 
         loss = compute_loss(y,tx,w)
 
@@ -321,7 +335,7 @@ def my_least_squares(y, tx, lambda_=0):
 
 # ------------------------------------------------------------------------------
 
-def my_ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, batch_size=4):
+def my_ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, batch_size=4, eps=1e-8):
     """
     ----------------------------------------------------------------------------
     Compute the model weights "w" from "y" and "tx" using the
@@ -339,6 +353,7 @@ def my_ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, b
     - gamma         step size, scalar in ]0,1[ (default=0.5)
     - batch_size    size of the subsamples, positive integer (default=1)
                     ( setting to 0 or >nsamples will result in using standard sg)
+    - eps           end condition, scalar>0 (default=1e-8)
     Output:
     - w             obtained weights, (nfeatures,1) np.array
     - loss          loss computed as the mean square error, scalar
@@ -356,7 +371,7 @@ def my_ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, b
 
 # ------------------------------------------------------------------------------
 
-def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log",lambda_=0):
+def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log",lambda_=0,eps=1e-8):
     """
     ----------------------------------------------------------------------------
     Iteratively computes the model weights "w" from "y" and "tx" using
@@ -375,6 +390,7 @@ def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log
     - mode          choice of algorithm (1/"log",2/"newton"), string/integer
                     (default=1/"log")
     - lambda_       regularization parameter, scalar>0
+    - eps           end condition, scalar>0 (default=1e-8)
     Output:
     - w             obtained weights, (nfeatures,1) np.array
     - loss          loss computed as the mean square error, scalar
@@ -388,7 +404,12 @@ def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log
     w = initial_w
 
     for i in range(max_iters):
-        w = w -gamma*compute_gradient(y, tx, w, lambda_, mode)
+        grad = compute_gradient(y, tx, w, lambda_, mode)
+        w = w -gamma*grad
+        if (n_iter%10 == 0):
+            err = np.sum(np.abs(grad))
+            if err < eps:
+                break
 
     loss = compute_loss(y,tx,w,"log")
 
@@ -396,7 +417,7 @@ def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log
 
 # ------------------------------------------------------------------------------
 
-def my_reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0.2, mode="log"):
+def my_reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0.2, mode="log", eps=1e-8):
     """
     ----------------------------------------------------------------------------
     Iteratively computes the model weights "w" from "y" and "tx" using
@@ -415,13 +436,14 @@ def my_reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0
     - gamma         step size, scalar in ]0,1[ (default=0.5)
     - mode          choice of algorithm (1/"log",2/"newton"), string/integer
                     (default=1/"log")
+    - eps           end condition, scalar>0 (default=1e-8)
     Output:
     - w             obtained weights, (nfeatures,1) np.array
     - loss          loss computed as the mean square error, scalar
     ----------------------------------------------------------------------------
     """
 
-    w, loss = logistic_regression(y,tx,initial_w,max_iters,gamma,mode,lambda_)
+    w, loss = logistic_regression(y,tx,initial_w,max_iters,gamma,mode,lambda_,eps)
 
     return w, loss
 
