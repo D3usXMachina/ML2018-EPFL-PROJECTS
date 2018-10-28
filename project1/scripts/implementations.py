@@ -25,6 +25,7 @@
 #   -> my_ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, batch_size=1, eps=1e-8)
 #   -> my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log", lambda_=0, eps=1e-8)
 #   -> my_reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0.2, mode="log", eps=1e-8)
+#   -> my_stoch_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=4, mode="log", lambda_=0, eps=1e-8)
 # -Utility functions for trainers
 #   -> compute_gradient(y, tx, w, lambda_=0, mode="mse")
 #   -> compute_sigma(tx,w,lim=100.0)
@@ -973,28 +974,21 @@ def nCR(n, k):
 
     return ncr
 
-# ------------------------------------------------------------------------------
-
 # ==============================================================================
 # WIP
 # ==============================================================================
 # Other functions that are still work in progress and not guaranteed to work.
 # ------------------------------------------------------------------------------
-#
-#def analyze_data(tx):
-#    return
 
-#
-# ------------------------------------------------------------------------------
-#
-# def handle(n, k):
+# def example(arg1, arg2):
 #     """
 #     ----------------------------------------------------------------------------
 #     ----------------------------------------------------------------------------
 #     Input:
-#     - x             a
+#     - arg1          argument 1, type (default=?)
+#     - arg2          argument 2, type (default=?)
 #     Output:
-#     - y             b
+#     - rv            return value, type
 #     ----------------------------------------------------------------------------
 #     """
 #
