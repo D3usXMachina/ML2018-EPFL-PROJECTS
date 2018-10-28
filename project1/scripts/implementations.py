@@ -31,6 +31,7 @@
 #   -> poly_expansion(x, degree, add_constant=True, mix_features=False)
 # -Utility
 #   -> generate_data(nsamples,nfeatures,seed=1,std)
+#   -> generate_bin_data(nsamples,nfeatures,seed=1,std=0.1)
 #   -> column_array(y)
 #   -> compute_y(tx,w)
 # ==============================================================================
@@ -573,10 +574,8 @@ def poly_expansion(x, degree, add_constant=True, mix_features=False):
     nfeatures = x.shape[1]
     nelements = x.shape[0]
 
-    if False: #mix_features:
-        # WIP
-        nfeatures = nfeatures
-        # nftot = (nfeatures**(degree+1)-1)/(nfeatures-1)
+    if mix_features:
+        nftot = nCr(nfeatures+degree,degree)
         # tx = np.ones([nelements,nftot])
         # for d in range(1,degree):
         #     for i in range(nfeatures):
@@ -637,6 +636,33 @@ def generate_data(nsamples,nfeatures,seed=1,std=0.1):
 
 # ------------------------------------------------------------------------------
 
+def generate_bin_data(nsamples,nfeatures,seed=1,std=0.1):
+    """
+    ----------------------------------------------------------------------------
+    This procedure generates a random data set following a linear model
+    with random coefficients and a binary objective function.
+    ----------------------------------------------------------------------------
+    Input:
+    - nsamples      number of samples, integer>0
+    - nfeatures     number of features, integer>0
+    - seed          seed for np.random, integer (default=1)
+    - std           standrad deviation of normal distrubted noise, scalar>0,
+                    (default=0.1)
+    Output:
+    - y             binary objective function, (nsamples,1) np.array
+    - x             features, (nsamples,nfeatures+1) np.array
+    - w             actual weights, (nfeatures+1,1) np.array
+    ----------------------------------------------------------------------------
+    """
+
+    z,x,w = generate_data(nsamples,nfeatures,seed,std)
+
+    y = compute_y(z,1)
+
+    return y, x, w
+
+# ------------------------------------------------------------------------------
+
 def column_array(y):
     """
     ----------------------------------------------------------------------------
@@ -675,26 +701,36 @@ def compute_y(tx,w):
 
     return y
 
+# ------------------------------------------------------------------------------
+
+def nCR(n, k):
+    """
+    ----------------------------------------------------------------------------
+    Compute binomial coefficients.
+    ----------------------------------------------------------------------------
+    Input:
+    - n             integer > 0
+    - k             integer > 0
+    Output:
+    - ncr           nCR(n,k)
+    ----------------------------------------------------------------------------
+    """
+    if 0 <= k <= n:
+        ncr = 1
+        n_ = n
+        for i in range(1,k+1):
+            ncr *= n_/i
+            n_ = n_-1
+    else:
+        ncr = 0
+
+    return ncr
+
 # ==============================================================================
 # WIP
 # ==============================================================================
 # Other functions that are still work in progress and not guaranteed to work.
 # ------------------------------------------------------------------------------
-
-#
-# def generate_bin_data(nsamples,nfeatures,seed=1):
-#     """
-#     generate a random dataset with a binary dependent variable.
-#     Not tested and no guarantee that this actually works.
-#     """
-#
-#     y,tx,w = generate_data(nsamples,nfeatures,seed)
-#
-#     y = np.exp(y)
-#     y = np.divide(y,1+y)
-#     y = np.round(y)
-#
-#     return y, tx
 #
 #def analyze_data(tx):
 #    return
