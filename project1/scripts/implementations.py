@@ -9,15 +9,22 @@
 # ptoject 1 of the 2018 machine learning course at EPFL as well as some other
 # utility functions used to complete the task at hand.
 # The functions required for the submission can be found in the first section
-# "Trainers".
+# "Required Functions".
 # ==============================================================================
+# -Required Functions
+#   -> least_squares_GD(y, tx, initial_w, max_iters, gamma)
+#   -> least_squares_SGD(y, tx, initial_w, max_iters, gamma)
+#   -> least_squares(y, tx)
+#   -> ridge_regression(y, tx, lambda_)
+#   -> logistic_regression(y, tx, initial_w, max_iters, gamma)
+#   -> reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters, gamma)
 # -Trainers
-#   -> least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0 )
-#   -> least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=1, lambda_=0)
-#   -> least_squares(y, tx, lambda_=0)
-#   -> ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, batch_size=1)
-#   -> logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log",lambda_=0)
-#   -> reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0.2, mode="log")
+#   -> my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0 )
+#   -> my_least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=1, lambda_=0)
+#   -> my_least_squares(y, tx, lambda_=0)
+#   -> my_ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, batch_size=1)
+#   -> my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log",lambda_=0)
+#   -> my_reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0.2, mode="log")
 # -Utility functions for trainers
 #   -> compute_gradient(y, tx, w, lambda_=0, mode="mse")
 #   -> compute_sigma(tx,w,lim=100.0)
@@ -46,14 +53,164 @@
 import numpy as np
 
 # ==============================================================================
+# Required Functions
+# ==============================================================================
+# This section contains the training functions required for the submission
+# without optional arguments.
+# The training functions are used to compute the optimal weights for a given
+# model from a training dataset.
+# For the respective source code, see the functions in the section "Trainers"
+# (same names but with prefix "my_").
+# ------------------------------------------------------------------------------
+
+def least_squares_GD(y, tx, initial_w, max_iters, gamma):
+    """
+    ----------------------------------------------------------------------------
+    Iteratively compute the model weights "w" from "y" and "tx" using the
+    gradient descent algorithm starting at "initial_w" with a maximum of
+    "max_iters" steps and step size "gamma".
+    The function also returns the loss computed as the mean square error (mse).
+    ----------------------------------------------------------------------------
+    Input:
+    - y             "measured" objective function, (nsamples,1) np.array
+    - tx            features, (nsamples,nfeatures) np.array
+    - initial_w     initial guess of model weights, (nfeatures,1) np.array
+    - max_iters     # of iterations after which the procedure will stop, int>0
+    - gamma         step size, scalar in ]0,1[
+    Output:
+    - w             obtained weights, (nfeatures,1) np.array
+    - loss          loss computed as the mean square error, scalar
+    ----------------------------------------------------------------------------
+    """
+
+    return my_least_squares_GD(y, tx, initial_w, max_iters, gamma)
+
+# ------------------------------------------------------------------------------
+
+def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
+    """
+    ----------------------------------------------------------------------------
+    Iteratively compute the model parameters "w" from "y" and "tx" using the
+    stochastic gradient descent algorithm starting at "initial_w" with a
+    maximum of "max_iters" steps and step size "gamma".
+    The function also returns the loss computed as the mean square error.
+    ----------------------------------------------------------------------------
+    Input:
+    - y             "measured" objective function, (nsamples,1) np.array
+    - tx            features, (nsamples,nfeatures) np.array
+    - initial_w     initial guess of model weights, (nfeatures,1) np.array
+    - max_iters     # of iterations after which the procedure will stop, int>0
+    - gamma         step size, scalar in ]0,1[
+    Output:
+    - w             obtained weights, (nfeatures,1) np.array
+    - loss          loss computed as the mean square error, scalar
+    ----------------------------------------------------------------------------
+    """
+
+    return my_least_squares_SGD(y, tx, initial_w, max_iters, gamma)
+
+# ------------------------------------------------------------------------------
+
+def least_squares(y, tx):
+    """
+    ----------------------------------------------------------------------------
+    Compute the model weights "w" from "y" and "tx" using the
+    normal equations.
+    The function also returns the loss computed as the mean square error (mse).
+    ----------------------------------------------------------------------------
+    Input:
+    - y             "measured" objective function, (nsamples,1) np.array
+    - tx            features, (nsamples,nfeatures) np.array
+    Output:
+    - w             obtained weights, (nfeatures,1) np.array
+    - loss          loss computed as the mean square error, scalar
+    ----------------------------------------------------------------------------
+    """
+
+    return my_least_squares(y, tx)
+
+# ------------------------------------------------------------------------------
+
+def ridge_regression(y, tx, lambda_):
+    """
+    ----------------------------------------------------------------------------
+    Compute the model weights "w" from "y" and "tx" using the
+    normal equations with reagularization parameter "lambda_".
+    The function also returns the loss computed as the mean square error (mse).
+    ----------------------------------------------------------------------------
+    Input:
+    - y             "measured" objective function, (nsamples,1) np.array
+    - tx            features, (nsamples,nfeatures) np.array
+    - lambda_       regularization parameter, scalar>0
+    Output:
+    - w             obtained weights, (nfeatures,1) np.array
+    - loss          loss computed as the mean square error, scalar
+    ----------------------------------------------------------------------------
+    """
+
+    return my_ridge_regression(y, tx, lambda_)
+
+# ------------------------------------------------------------------------------
+
+def logistic_regression(y, tx, initial_w, max_iters, gamma):
+    """
+    ----------------------------------------------------------------------------
+    Iteratively computes the model weights "w" from "y" and "tx" using
+    logistic regression with an optional reagularization parameter "lambda_"
+    in up "max_iters" iterations.
+    The function also returns the loss computed according to the logistic
+    regression loss function.
+    ----------------------------------------------------------------------------
+    Input:
+    - y             "measured" objective function, (nsamples,1) np.array
+    - tx            features, (nsamples,nfeatures) np.array
+    - initial_w     initial guess of model weights, (nfeatures,1) np.array
+    - max_iters     # of iterations after which the procedure will stop, int>0
+    - gamma         step size, scalar in ]0,1[
+    Output:
+    - w             obtained weights, (nfeatures,1) np.array
+    - loss          loss computed as the mean square error, scalar
+    ----------------------------------------------------------------------------
+    """
+
+    return my_logistic_regression(y, tx, initial_w, max_iters, gamma)
+
+# ------------------------------------------------------------------------------
+
+def reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters, gamma):
+    """
+    ----------------------------------------------------------------------------
+    Iteratively computes the model weights "w" from "y" and "tx" using
+    regularized logistic regression with reagularization parameter "lambda_"
+    in up "max_iters" iterations.
+    The function also returns the loss computed according to the logistic
+    regression loss function.
+    ----------------------------------------------------------------------------
+    Input:
+    - y             "measured" objective function, (nsamples,1) np.array
+    - tx            features, (nsamples,nfeatures) np.array
+    - lambda_       regularization parameter, scalar>0
+    - initial_w     initial guess of model weights, (nfeatures,1) np.array
+    - max_iters     # of iterations after which the procedure will stop, int>0
+    - gamma         step size, scalar in ]0,1[
+    Output:
+    - w             obtained weights, (nfeatures,1) np.array
+    - loss          loss computed as the mean square error, scalar
+    ----------------------------------------------------------------------------
+    """
+
+    return my_reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters, gamma)
+
+# ==============================================================================
 # Trainers
 # ==============================================================================
-# This section contains the training functions required for the submission.
+# This section contains the training functions required for the submission with
+# optional arguments.
 # The training functions are used to compute the optimal weights for a given
 # model from a training dataset.
 # ------------------------------------------------------------------------------
 
-def least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0 ):
+def my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0 ):
     """
     ----------------------------------------------------------------------------
     Iteratively compute the model weights "w" from "y" and "tx" using the
@@ -87,7 +244,7 @@ def least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0 ):
 
 # ------------------------------------------------------------------------------
 
-def least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=1, lambda_=0):
+def my_least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=4, lambda_=0):
     """
     ----------------------------------------------------------------------------
     Iteratively compute the model parameters "w" from "y" and "tx" using the
@@ -99,7 +256,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=1, 
     - y             "measured" objective function, (nsamples,1) np.array
     - tx            features, (nsamples,nfeatures) np.array
     - initial_w     initial guess of model weights, (nfeatures,1) np.array
-    - batch_size    size of the subsamples, positive integer (default=1)
+    - batch_size    size of the subsamples, positive integer (default=4)
                     ( setting to 0 or >nsamples will result in using standard sg)
     - max_iters     # of iterations after which the procedure will stop, int>0
                     (default=100)
@@ -130,7 +287,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=1, 
 
 # ------------------------------------------------------------------------------
 
-def least_squares(y, tx, lambda_=0):
+def my_least_squares(y, tx, lambda_=0):
     """
     ----------------------------------------------------------------------------
     Compute the model weights "w" from "y" and "tx" using the
@@ -164,7 +321,7 @@ def least_squares(y, tx, lambda_=0):
 
 # ------------------------------------------------------------------------------
 
-def ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, batch_size=1):
+def my_ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, batch_size=4):
     """
     ----------------------------------------------------------------------------
     Compute the model weights "w" from "y" and "tx" using the
@@ -199,7 +356,7 @@ def ridge_regression(y, tx, lambda_, mode = "ls", max_iters=100, gamma=0.2, batc
 
 # ------------------------------------------------------------------------------
 
-def logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log",lambda_=0):
+def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log",lambda_=0):
     """
     ----------------------------------------------------------------------------
     Iteratively computes the model weights "w" from "y" and "tx" using
@@ -239,7 +396,7 @@ def logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log",l
 
 # ------------------------------------------------------------------------------
 
-def reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0.2, mode="log"):
+def my_reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters=100, gamma=0.2, mode="log"):
     """
     ----------------------------------------------------------------------------
     Iteratively computes the model weights "w" from "y" and "tx" using
@@ -471,13 +628,19 @@ def compute_loss(y, tx, w, mode="mse", lambda_=0):
 # Preprocessing functions to prepare data for training and/or prediction.
 # ------------------------------------------------------------------------------
 
-def standardize(tx):
+def standardize(tx, mean_=0, std_=1):
     """
     ----------------------------------------------------------------------------
-    standardize data (i.e substract mean and divide by standard deviation)
+    Standardize data (i.e substract mean and divide by standard deviation). If
+    non-zero mean and non unitary standard deviation are passed as arguments the
+    passed values will be used instead of the mean value and standrad deviation
+    of the sample "tx".
     ----------------------------------------------------------------------------
     Input:
     - tx            features, (nsamples,nfeatures) np.array
+    - mean_         mean value of features, (1,nfeatures) np.array, (default=0)
+    - std_          standrad deviation of features, (1,nfeatures) np.array,
+                    (default=1)
     Output:
     - tx_std        features standardized to mean 0 and std 1,
                     (nsamples,nfeatures) np.array
@@ -486,8 +649,13 @@ def standardize(tx):
     ----------------------------------------------------------------------------
     """
 
-    mean = np.mean(tx,0)
-    std = np.std(tx,0)
+    if (mean==0) | (std==1):
+        mean = np.mean(tx,0)
+        std = np.std(tx,0)
+    else:
+        mean = mean_
+        std = std_
+
     tx_std = np.divide(tx-mean,std)
 
     return tx_std, mean, std
@@ -576,6 +744,7 @@ def poly_expansion(x, degree, add_constant=True, mix_features=False):
 
     if mix_features:
         nftot = nCr(nfeatures+degree,degree)
+        tx = x
         # tx = np.ones([nelements,nftot])
         # for d in range(1,degree):
         #     for i in range(nfeatures):
@@ -726,6 +895,10 @@ def nCR(n, k):
 
     return ncr
 
+# ------------------------------------------------------------------------------
+
+
+
 # ==============================================================================
 # WIP
 # ==============================================================================
@@ -734,3 +907,21 @@ def nCR(n, k):
 #
 #def analyze_data(tx):
 #    return
+
+#
+# ------------------------------------------------------------------------------
+#
+# def handle(n, k):
+#     """
+#     ----------------------------------------------------------------------------
+#     ----------------------------------------------------------------------------
+#     Input:
+#     - x             a
+#     Output:
+#     - y             b
+#     ----------------------------------------------------------------------------
+#     """
+#
+#     y = x
+#
+#     return y
