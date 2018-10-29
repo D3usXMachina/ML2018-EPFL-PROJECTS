@@ -46,8 +46,7 @@
 #   -> nCr(n,k)
 # ==============================================================================
 # TODO:
-#       -implement feature mixing in polynomial feature expansion
-#       -check must implement functions
+#   - nobody ain't got time for that!
 # ==============================================================================
 
 import numpy as np
@@ -56,7 +55,8 @@ import numpy as np
 # Required Functions
 # ==============================================================================
 # This section contains the training functions required for the submission
-# without optional arguments.
+# without optional arguments thus acts as an interface between the actual
+# implementations and the automated test programm.
 # The training functions are used to compute the optimal weights for a given
 # model from a training dataset.
 # For the respective source code, see the functions in the section "Trainers"
