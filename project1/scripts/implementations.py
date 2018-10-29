@@ -46,8 +46,7 @@
 #   -> nCr(n,k)
 # ==============================================================================
 # TODO:
-#       -implement feature mixing in polynomial feature expansion
-#       -check must implement functions
+#   - nobody ain't got time for that!
 # ==============================================================================
 
 import numpy as np
@@ -56,7 +55,8 @@ import numpy as np
 # Required Functions
 # ==============================================================================
 # This section contains the training functions required for the submission
-# without optional arguments.
+# without optional arguments thus acts as an interface between the actual
+# implementations and the automated test programm.
 # The training functions are used to compute the optimal weights for a given
 # model from a training dataset.
 # For the respective source code, see the functions in the section "Trainers"
@@ -481,6 +481,8 @@ def my_stoch_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, bat
                 if err/(nerr*batch_size*nfeatures) < eps:
                     break
                 err = 0
+            if( np.abs(w).any()>1e+20):
+                break
             n_iter = n_iter+1
 
     loss = compute_loss(y,tx,w,"log")
@@ -788,10 +790,11 @@ def split_data(y, tx, ratio, seed=1):
     indices = np.indices([nsamples])[0]
     np.random.shuffle(indices)
 
-    split1 = indices[0:np.floor(nsamples*ratio)]
-    split2 = indices[np.floor(nsamples*ratio):nelem]
+    split1 = indices[0:int(np.floor(nsamples*ratio))]
+    split2 = indices[int(np.floor(nsamples*ratio)):nsamples]
 
-    return y[split1],x[split1,:],y[split2],x[split2,:]
+
+    return y[split1],tx[split1,:],y[split2],tx[split2,:]
 
 # ------------------------------------------------------------------------------
 
@@ -904,14 +907,15 @@ def poly_expansion(x, degree, add_constant=True, mix_features=False):
         for d in range(2,degree+1):
             tx[:,n*(degree)+d] = tx[:,n*(degree)+d-1]*x[:,n]
 
-    tx_add = np.zeros([nsamples,nfeatures*(nfeatures-1)])
-    ind = 0
-    for i in range(nfeatures):
-        for j in range(i+1,nfeatures):
-            tx_add[:,ind] = x[:,i]*x[:,j]
-            ind = ind+1
+    if mix_features:
+        tx_add = np.zeros([nsamples,int(nfeatures*(nfeatures-1)/2)])
+        ind = 0
+        for i in range(nfeatures):
+            for j in range(i+1,nfeatures):
+                tx_add[:,ind] = x[:,i]*x[:,j]
+                ind = ind+1
 
-    tx = np.column_stack([tx,tx_add])
+        tx = np.column_stack([tx,tx_add])
 
     if not add_constant:
         tx = tx[:,1:]
