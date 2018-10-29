@@ -418,7 +418,7 @@ def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log
             if err < eps:
                 break
 
-    loss = compute_loss(y,tx,w,"mse")
+    loss = compute_loss(y,tx,w,"log")
 
     return w, loss
 
@@ -466,6 +466,7 @@ def my_stoch_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, bat
         batches = batch_iter(y, tx, batch_size, max_iters)
         err = 1
 
+        n_iter = 0
         for batch in batches:
             grad = compute_gradient(y, tx, w, mode, lambda_)
             w = w -gamma*grad
@@ -473,6 +474,7 @@ def my_stoch_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, bat
                 err = np.sum(np.abs(grad))
                 if err < eps:
                     break
+            n_iter = n_iter+1
 
     loss = compute_loss(y,tx,w,"log")
 
