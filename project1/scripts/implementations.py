@@ -42,13 +42,11 @@
 #   -> generate_bin_data(nsamples,nfeatures,seed=1,std=0.1)
 #   -> column_array(y)
 #   -> compute_y(tx,w)
+#   -> nCr(n,k)
 # ==============================================================================
-# TODO: -check that implementations work regardless the format of the inpute
-#        i.e. (n,) should be treated as (n,1)
+# TODO:
 #       -implement feature mixing in polynomial feature expansion
 #       -check must implement functions
-#       -implement stochastic version of logistic_regression/reg_logistic_regression
-#       -implement end condition for iterative functions
 # ==============================================================================
 
 import numpy as np
@@ -551,7 +549,8 @@ def compute_gradient(y, tx, w, mode="mse", lambda_=0):
     if (lambda_ == 0 ):
         a = 0
     else:
-        a = lambda_*w#*np.ones([len(w),1])
+        a = lambda_*w
+        print(a)
 
     if (( mode=="log" ) | ( mode=="1" )) | (( mode=="newton" ) | ( mode=="2" )):
 
@@ -970,7 +969,7 @@ def compute_y(tx,w):
 
 # ------------------------------------------------------------------------------
 
-def nCR(n, k):
+def nCr(n, k):
     """
     ----------------------------------------------------------------------------
     Compute binomial coefficients.
