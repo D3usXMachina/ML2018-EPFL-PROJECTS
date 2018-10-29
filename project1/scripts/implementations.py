@@ -330,7 +330,7 @@ def my_least_squares(y, tx, lambda_=0):
     if lambda_ == 0:
         a = 0
     else:
-        a = 2*tx.shape[0]*lambda_
+        a = 2*tx.shape[0]*lambda_*np.eye(tx.shape[1])
 
     y = column_array(y)
 
@@ -477,7 +477,7 @@ def my_stoch_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, bat
                 if err < eps:
                     break
 
-    loss = compute_loss(y,tx,w,"mse")
+    loss = compute_loss(y,tx,w,"log")
 
     return w, loss
 
@@ -676,14 +676,16 @@ def compute_loss(y, tx, w, mode="mse", lambda_=0):
     ----------------------------------------------------------------------------
     """
 
+    y = column_array(y)
+
     # compute error
     if (mode == "msa") | (mode == 2):
         e = y-tx.dot(w)
         e = np.absolute(e).sum()/e.shape[0]/2
     elif (mode == "log") | (mode == 3):
 
-         e = np.compute_y(tx,w)
-         e = np.abs(y - e)) / (2. * len(e))
+         e = compute_y(tx,w)
+         e = np.abs(y - e)/(2*len(e))
 
         # e = tx.dot(w)
         #
@@ -742,7 +744,8 @@ def standardize(tx, mean_=0, std_=1):
     ----------------------------------------------------------------------------
     """
 
-    if (mean_==0) | (std_==1):
+    if (np.sum(mean_==0)) | (np.sum(std_==1)):
+        # does not work if there is an actual feature with mean 0 or std 1
         mean = np.mean(tx,0)
         std = np.std(tx,0)
     else:
@@ -885,7 +888,7 @@ def generate_data(nsamples,nfeatures,seed=1,std=0.1):
 
     np.random.seed(seed)
 
-    w = np.random.random([nfeatures+1,1])
+    w = np.random.random([nfeatures+1,1])*2-1
 
     x = np.random.random([nsamples,nfeatures])
     tx = np.ones([nsamples,1])
@@ -961,8 +964,7 @@ def compute_y(tx,w):
     ----------------------------------------------------------------------------
     """
 
-    y = np.round(compute_sigma(tx,w))
-    y = 2*y-1
+    y = np.where(tx.dot(w)<0,-1,1)
 
     return y
 
