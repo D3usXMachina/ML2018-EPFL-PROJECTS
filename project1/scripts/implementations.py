@@ -421,7 +421,7 @@ def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log
             if err < eps:
                 break
 
-    loss = compute_loss(y,tx,w,"log")
+    loss = compute_loss(y,tx,w,"mse")
 
     return w, loss
 
@@ -477,7 +477,7 @@ def my_stoch_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, bat
                 if err < eps:
                     break
 
-    loss = compute_loss(y,tx,w,"log")
+    loss = compute_loss(y,tx,w,"mse")
 
     return w, loss
 
@@ -681,19 +681,24 @@ def compute_loss(y, tx, w, mode="mse", lambda_=0):
         e = y-tx.dot(w)
         e = np.absolute(e).sum()/e.shape[0]/2
     elif (mode == "log") | (mode == 3):
-        e = tx.dot(w)
 
-        lim = 100.0
-        large = e>lim
-        small = e<-lim
-        neither = np.logical_not(large)*np.logical_not(small)
+         e = np.compute_y(tx,w)
+         e = np.abs(y - e)) / (2. * len(e))
 
-        x = e
-        x[neither] = np.log(1+np.exp(e[neither]))
-        x[large] = e[large]
-        x[small] = 0
+        # e = tx.dot(w)
+        #
+        # lim = 100.0
+        # large = e>lim
+        # small = e<-lim
+        # neither = np.logical_not(large)*np.logical_not(small)
+        #
+        # x = e
+        # x[neither] = np.log(1+np.exp(e[neither]))
+        # x[large] = e[large]
+        # x[small] = 0
+        #
+        # e = (x - y*e)/(2*len(e))
 
-        e = x - y*e
     else: # mse or rmse loss
         e = y-tx.dot(w)
         e = (np.transpose(e).dot(e)/(2*e.shape[0]))
