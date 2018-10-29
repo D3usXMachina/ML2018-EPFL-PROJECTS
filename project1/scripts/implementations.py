@@ -35,6 +35,7 @@
 # -Preprocessing
 #   -> standardize(tx,mean_=0,std_=1)
 #   -> split_data(y, tx, ratio, seed=1)
+#   -> eq_split_data(y, tx, nparts, shuffle=True, seed=1)
 #   -> add_constant(x)
 #   -> poly_expansion(x, degree, add_constant=True, mix_features=False)
 # -Utility
@@ -209,7 +210,7 @@ def reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters, gamma):
 # model from a training dataset.
 # ------------------------------------------------------------------------------
 
-def my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0, eps=1e-5):
+def my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0, eps=1e-3):
     """
     ----------------------------------------------------------------------------
     Iteratively compute the model weights "w" from "y" and "tx" using the
@@ -234,6 +235,7 @@ def my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0, e
 
     y = column_array(y)
     nsamples = tx.shape[0]
+    nfeatures = tx.shape[1]
     w = initial_w
     err = 1
 
@@ -241,7 +243,7 @@ def my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0, e
         grad = compute_gradient(y, tx, w,"mse",lambda_)
         w = w -gamma*grad
         if ((n_iter+1)%10 == 0):
-            err = np.sum(np.abs(grad))/nsamples
+            err = np.sum(np.abs(grad))/nfeatures
             if err < eps :
                 print("Terminated least_squares_GD after ",n_iter," iterations.")
                 break
@@ -252,7 +254,7 @@ def my_least_squares_GD(y, tx, initial_w, max_iters=100, gamma=0.2, lambda_=0, e
 
 # ------------------------------------------------------------------------------
 
-def my_least_squares_SGD(y, tx, initial_w, max_iters=1000, gamma=0.2, batch_size=4, lambda_=0, eps=1e-1):
+def my_least_squares_SGD(y, tx, initial_w, max_iters=1000, gamma=0.2, batch_size=10, lambda_=0, eps=1e-1):
     """
     ----------------------------------------------------------------------------
     Iteratively compute the model parameters "w" from "y" and "tx" using the
@@ -279,13 +281,14 @@ def my_least_squares_SGD(y, tx, initial_w, max_iters=1000, gamma=0.2, batch_size
 
     y = column_array(y)
     nsamples = tx.shape[0]
+    nfeatures = tx.shape[1]
     if ( batch_size==0 ) | ( batch_size>=nsamples ):
         w, loss = my_least_squares_GD(y, tx, initial_w, max_iters, gamma, lambda_,eps)
     else:
         w = initial_w
         batches = batch_iter(y, tx, batch_size, max_iters)
         err = 0
-        nerr = max((nsamples/50),20)
+        nerr = min(max((nsamples/50),20),100)
 
         n_iter = 0
         for batch in batches:
@@ -295,7 +298,7 @@ def my_least_squares_SGD(y, tx, initial_w, max_iters=1000, gamma=0.2, batch_size
             err = err + np.sum(np.abs(grad))
             w = w -gamma*grad
             if ((n_iter+1)%nerr == 0):
-                if err/(nerr*batch_size) < eps:
+                if err/(nerr*batch_size*nfeatures) < eps:
                     print("Terminated least_squares_SGD after ",n_iter," iterations.")
                     break
                 err = 0
@@ -341,7 +344,7 @@ def my_least_squares(y, tx, lambda_=0):
 
 # ------------------------------------------------------------------------------
 
-def my_ridge_regression(y, tx, lambda_, mode = "ls", max_iters=1000, gamma=0.2, batch_size=4, eps=1e-5):
+def my_ridge_regression(y, tx, lambda_, mode = "ls", max_iters=1000, gamma=0.2, batch_size=4, eps=1e-3):
     """
     ----------------------------------------------------------------------------
     Compute the model weights "w" from "y" and "tx" using the
@@ -378,7 +381,7 @@ def my_ridge_regression(y, tx, lambda_, mode = "ls", max_iters=1000, gamma=0.2, 
 
 # ------------------------------------------------------------------------------
 
-def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log", lambda_=0, eps=1e-5):
+def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log", lambda_=0, eps=1e-3):
     """
     ----------------------------------------------------------------------------
     Iteratively computes the model weights "w" from "y" and "tx" using
@@ -409,13 +412,14 @@ def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log
 
     y = column_array(y)
     w = initial_w
+    nfeatures = tx.shape[1]
 
     for n_iter in range(max_iters):
         grad = compute_gradient(y, tx, w, mode, lambda_)
         w = w -gamma*grad
         if ((n_iter+1)%10 == 0):
             err = np.sum(np.abs(grad))
-            if err < eps:
+            if err/nfeatures < eps:
                 break
 
     loss = compute_loss(y,tx,w,"log")
@@ -424,7 +428,7 @@ def my_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, mode="log
 
 # ------------------------------------------------------------------------------
 
-def my_stoch_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=4, mode="log", lambda_=0, eps=1e-5):
+def my_stoch_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, batch_size=4, mode="log", lambda_=0, eps=1e-1):
     """
     ----------------------------------------------------------------------------
     Iteratively computes the model weights "w" from "y" and "tx" using stochastic
@@ -459,21 +463,24 @@ def my_stoch_logistic_regression(y, tx, initial_w, max_iters=100, gamma=0.2, bat
     w = initial_w
 
     nsamples = tx.shape[0]
+    nfeatures = tx.shape[1]
     if ( batch_size==0 ) | ( batch_size>=nsamples ):
         w, loss = my_logistic_regression(y, tx, initial_w, max_iters, gamma, mode, lambda_, eps)
     else:
         w = initial_w
         batches = batch_iter(y, tx, batch_size, max_iters)
-        err = 1
+        err = 0
+        nerr = min(max((nsamples/50),20),100)
 
         n_iter = 0
         for batch in batches:
             grad = compute_gradient(y, tx, w, mode, lambda_)
             w = w -gamma*grad
-            if (n_iter%10 == 0):
-                err = np.sum(np.abs(grad))
-                if err < eps:
+            err = err + np.sum(np.abs(grad))
+            if ((n_iter+1)%nerr == 0):
+                if err/(nerr*batch_size*nfeatures) < eps:
                     break
+                err = 0
             n_iter = n_iter+1
 
     loss = compute_loss(y,tx,w,"log")
@@ -551,7 +558,6 @@ def compute_gradient(y, tx, w, mode="mse", lambda_=0):
         a = 0
     else:
         a = lambda_*w
-        print(a)
 
     if (( mode=="log" ) | ( mode=="1" )) | (( mode=="newton" ) | ( mode=="2" )):
 
@@ -761,7 +767,7 @@ def standardize(tx, mean_=0, std_=1):
 def split_data(y, tx, ratio, seed=1):
     """
     ----------------------------------------------------------------------------
-    randomly split the dataset "x" based on the split passed ratio.
+    Randomly split the dataset "(y,tx)" based on the passed split ratio.
     ----------------------------------------------------------------------------
     Input:
     - y             "measured" objective function, (nsamples,1) np.array
@@ -786,6 +792,50 @@ def split_data(y, tx, ratio, seed=1):
     split2 = indices[np.floor(nsamples*ratio):nelem]
 
     return y[split1],x[split1,:],y[split2],x[split2,:]
+
+# ------------------------------------------------------------------------------
+
+def eq_split_data(y, tx, nparts, shuffle=True, seed=1):
+    """
+    ----------------------------------------------------------------------------
+    Randomly split the dataset "(y,tx)" into "nparts" equally sized portions.
+    ----------------------------------------------------------------------------
+    Input:
+    - y             "measured" objective function, (nsamples,1) np.array
+    - tx            features, (nsamples,nfeatures) np.array
+    - nparts        number of parts, integer>0
+    - shuffle       wheter or not to shuffle the data before splitting, logical
+                    (default=True)
+    - seed          seed for np.random, integer
+    Output:
+    - ys            "measured" objective function, (nsamples//nparts,1,nparts) np.array
+    - txs           features, (nsamples//nparts,nfeatures,nparts) np.array
+    - inds          indices included in each split, (nsamples//nparts,nparts) int np.array
+    - boolind       indices included in each split, (nsamples,nparts) logical np.array
+    ----------------------------------------------------------------------------
+    """
+
+    np.random.seed(seed)
+    y = column_array(y)
+
+    nsamples = tx.shape[0]
+    nfeatures = tx.shape[1]
+    indices = np.indices([nsamples])[0]
+    np.random.shuffle(indices)
+
+    nspp = nsamples//nparts #number of samples per part
+
+    ys = np.zeros([nspp,nparts])
+    txs = np.zeros([nspp,nfeatures,nparts])
+    inds = np.zeros([nspp,nparts],"int")
+    boolind = np.zeros([nsamples,nparts],"bool")
+    for part in range(nparts):
+        inds[:,part] = indices[part*nspp:(part+1)*nspp]
+        ys[:,part] = y[inds[:,part],0]
+        txs[:,:,part] = tx[inds[:,part]]
+        boolind[inds[:,part],part] = True
+
+    return ys, txs, inds, boolind
 
 # ------------------------------------------------------------------------------
 
