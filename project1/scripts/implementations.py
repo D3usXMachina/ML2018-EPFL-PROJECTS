@@ -877,7 +877,8 @@ def poly_expansion(x, degree, add_constant=True, mix_features=False):
     - degree        degree of the polynomial, integer>0
     - add_constant  if enabled a constant feature will be added, boolean
                     (default=True)
-    - mix_features  if enabled features will be mixed, boolean (default=False) - WIP
+    - mix_features  if enabled features will be mixed up to the second degree,
+                    boolean (default=False)
     Output:
     - tx            the polynomial expansion of "x",
                     (nsamples,nfeatures*degree+add_constant) np.array (w/o fm)
@@ -886,23 +887,31 @@ def poly_expansion(x, degree, add_constant=True, mix_features=False):
     """
 
     nfeatures = x.shape[1]
-    nelements = x.shape[0]
+    nsamples = x.shape[0]
 
-    if mix_features:
-        nftot = nCr(nfeatures+degree,degree)
-        tx = x
-        # tx = np.ones([nelements,nftot])
-        # for d in range(1,degree):
-        #     for i in range(nfeatures):
-        #         tx(:,1+i*d*(nfeatures):1+(1+i*d)*(nfeatures)) = tx(:,1:1+nfeatures)*x(:,i)
+    # if mix_features:
+    #     nftot = nCr(nfeatures+degree,degree)
+    #     tx = np.ones([nsamples,nftot])
+    #
+    #     for d in range(1,degree):
+    #         for i in range(nfeatures):
+    #             tx(:,1+i*d*(nfeatures):1+(1+i*d)*(nfeatures)) = tx(:,1:1+nfeatures)*x(:,i)
+    #
+    # else:
+    tx = np.ones([nsamples,degree*nfeatures+1])
+    for n in range(0,nfeatures):
+        tx[:,n*degree+1] = x[:,n]
+        for d in range(2,degree+1):
+            tx[:,n*(degree)+d] = tx[:,n*(degree)+d-1]*x[:,n]
 
+    tx_add = np.zeros([nsamples,nfeatures*(nfeatures-1)])
+    ind = 0
+    for i in range(nfeatures):
+        for j in range(i+1,nfeatures):
+            tx_add[:,ind] = x[:,i]*x[:,j]
+            ind = ind+1
 
-    else:
-        tx = np.ones([nelements,degree*nfeatures+1])
-        for n in range(0,nfeatures):
-            tx[:,n*degree+1] = x[:,n]
-            for d in range(2,degree+1):
-                tx[:,n*(degree)+d] = tx[:,n*(degree)+d-1]*x[:,n]
+    tx = np.column_stack([tx,tx_add])
 
     if not add_constant:
         tx = tx[:,1:]
