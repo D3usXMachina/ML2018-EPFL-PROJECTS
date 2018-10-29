@@ -279,7 +279,6 @@ def my_least_squares_SGD(y, tx, initial_w, max_iters=1000, gamma=0.2, batch_size
 
     y = column_array(y)
     nsamples = tx.shape[0]
-    print(nsamples)
     if ( batch_size==0 ) | ( batch_size>=nsamples ):
         w, loss = my_least_squares_GD(y, tx, initial_w, max_iters, gamma, lambda_,eps)
     else:
@@ -848,10 +847,10 @@ def poly_expansion(x, degree, add_constant=True, mix_features=False):
 
     else:
         tx = np.ones([nelements,degree*nfeatures+1])
-        for n in range(0,nfeatures+1):
-            tx[:,n*(degree)+1] = x[:,n]
+        for n in range(0,nfeatures):
+            tx[:,n*degree+1] = x[:,n]
             for d in range(2,degree+1):
-                tx[:,n*(degree)+degree] = tx[:,n*(degree)+degree-1]*x[:,n]
+                tx[:,n*(degree)+d] = tx[:,n*(degree)+d-1]*x[:,n]
 
     if not add_constant:
         tx = tx[:,1:]
