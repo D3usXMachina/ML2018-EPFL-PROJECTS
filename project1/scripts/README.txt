@@ -38,7 +38,7 @@ Contents of this folder:
 -report.pdf             Pdf containing a report on the methodology used and
                         and work done by our group.
 
--submission.csv         A .csv file containing the predictions produced by the
+-Submission.csv         A .csv file containing the predictions produced by the
                         python script "run.py" which were submitted on kaggle.
 
 -select-model.ipynb     Jupyter notebook with some of the work done to find
