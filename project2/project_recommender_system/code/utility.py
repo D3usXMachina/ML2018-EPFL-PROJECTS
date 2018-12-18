@@ -11,6 +11,7 @@
 # - File processing and Import
 #   -> loadData2df(infilepath,skiplines=1)
 #   -> loadData2ds(source,skiplines=1)
+#   -> filterDf(df,min_ratings_user,min_ratings_item)
 # - Predictions and Parameter export
 #   -> generatePredictions(algo,pred_df,verbose)
 #   -> addDateAndTime(filepath,add_date=True,add_time=True)
@@ -133,6 +134,49 @@ def loadData2ds(source=None,skiplines=1):
     ds = Dataset.load_from_df(source,reader)
 
     return ds
+
+# ------------------------------------------------------------------------------
+
+def filterDf(df,min_ratings_user,min_ratings_item):
+    """
+    ============================================================================
+    Filter user-item-ratings dataframe by a minimum number of ratings
+    requirement.
+    ----------------------------------------------------------------------------
+    Returns a new pandas.DataFrame where users who gave less than <min_ratings_user>
+    ratings and items which recieved less than <min_ratings_item> are excluded.
+    ----------------------------------------------------------------------------
+    Input:
+
+    - df                (pandas.DataFrame);
+                        DataFrame containing ratings;
+
+    - min_ratings_user  (integer);
+                        minimum reuired ratings given by user;
+
+    - min_ratings_item  (integer);
+                        minimum reuired ratings recieved by item;
+
+    Output:
+
+    - df                (pandas.DataFrame);
+                        filtered dataframe
+    ============================================================================
+    """
+
+    reduced_df = df
+
+    # filter on items
+    item_rating_counts = reduced_df["itemId"].value_counts()
+    item_rating_counts = item_rating_counts[item_rating_counts>=min_ratings_item]
+    reduced_df = reduced_df[reduced_df["itemId"].isin(item_rating_counts.index)]
+
+    # filter on users
+    user_rating_counts = reduced_df["userId"].value_counts()
+    user_rating_counts = user_rating_counts[user_rating_counts>=min_ratings_user]
+    reduced_df = reduced_df[reduced_df["userId"].isin(user_rating_counts.index)]
+
+    return reduced_df
 
 # ==============================================================================
 # Predictions and Parameter export
